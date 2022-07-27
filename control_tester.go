@@ -4,6 +4,7 @@
 package nebula
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/google/gopacket"
@@ -152,4 +153,16 @@ func (c *Control) KillPendingTunnel(vpnIp net.IP) bool {
 
 	c.f.handshakeManager.pendingHostMap.DeleteHostInfo(hostinfo)
 	return true
+}
+
+func (c *Control) GetInterface() *Interface {
+	return c.f
+}
+
+func (c *Control) GetIndexes() []string {
+	var i []string
+	for id, h := range c.f.hostMap.Indexes {
+		i = append(i, fmt.Sprintf("%v -> %v", id, h.remoteIndexId))
+	}
+	return i
 }
