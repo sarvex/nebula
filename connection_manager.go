@@ -136,8 +136,8 @@ func (n *connectionManager) Run(ctx context.Context) {
 }
 
 func (n *connectionManager) doTrafficCheck(localIndex uint32, p, nb, out []byte, now time.Time) {
-	hostinfo, err := n.hostMap.QueryIndex(localIndex)
-	if err != nil {
+	hostinfo := n.hostMap.QueryIndex(localIndex)
+	if hostinfo == nil {
 		n.l.WithField("localIndex", localIndex).Debugf("Not found in hostmap")
 		delete(n.pendingDeletion, localIndex)
 		return
@@ -147,7 +147,7 @@ func (n *connectionManager) doTrafficCheck(localIndex uint32, p, nb, out []byte,
 		return
 	}
 
-	primary, _ := n.hostMap.QueryVpnIp(hostinfo.vpnIp)
+	primary := n.hostMap.QueryVpnIp(hostinfo.vpnIp)
 	mainHostInfo := true
 	if primary != nil && primary != hostinfo {
 		mainHostInfo = false

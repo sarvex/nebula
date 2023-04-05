@@ -121,14 +121,10 @@ func (f *Interface) getOrHandshake(vpnIp iputil.VpnIp) *HostInfo {
 			return nil
 		}
 	}
-	hostinfo, err := f.hostMap.PromoteBestQueryVpnIp(vpnIp, f)
 
-	//if err != nil || hostinfo.ConnectionState == nil {
-	if err != nil {
-		hostinfo, err = f.handshakeManager.pendingHostMap.QueryVpnIp(vpnIp)
-		if err != nil {
-			hostinfo = f.handshakeManager.AddVpnIp(vpnIp, f.initHostInfo)
-		}
+	hostinfo := f.hostMap.PromoteBestQueryVpnIp(vpnIp, f)
+	if hostinfo == nil {
+		hostinfo = f.handshakeManager.AddVpnIp(vpnIp, f.initHostInfo)
 	}
 	ci := hostinfo.ConnectionState
 
@@ -137,6 +133,7 @@ func (f *Interface) getOrHandshake(vpnIp iputil.VpnIp) *HostInfo {
 	}
 
 	// Handshake is not ready, we need to grab the lock now before we start the handshake process
+	//TODO: move this to handshake manager
 	hostinfo.Lock()
 	defer hostinfo.Unlock()
 
@@ -372,9 +369,9 @@ func (f *Interface) sendNoMetrics(t header.MessageType, st header.MessageSubType
 	} else {
 		// Try to send via a relay
 		for _, relayIP := range hostinfo.relayState.CopyRelayIps() {
-			relayHostInfo, err := f.hostMap.QueryVpnIp(relayIP)
-			if err != nil {
-				hostinfo.logger(f.l).WithField("relay", relayIP).WithError(err).Info("sendNoMetrics failed to find HostInfo")
+			relayHostInfo := f.hostMap.QueryVpnIp(relayIP)
+			if relayHostInfo == nil {
+				hostinfo.logger(f.l).WithField("relay", relayIP).Info("sendNoMetrics failed to find HostInfo")
 				continue
 			}
 			relay, ok := relayHostInfo.relayState.QueryRelayForByIp(hostinfo.vpnIp)
