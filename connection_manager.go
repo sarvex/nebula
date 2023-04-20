@@ -215,7 +215,7 @@ func (n *connectionManager) doTrafficCheck(localIndex uint32, p, nb, out []byte,
 			n.sendPunch(hostinfo)
 		}
 
-		if n.intf.lightHouse.IsLighthouseIP(hostinfo.vpnIp) {
+		if !n.punchy.GetTestLighthouses() && n.intf.lightHouse.IsLighthouseIP(hostinfo.vpnIp) {
 			// We are sending traffic to the lighthouse, let recv_error sort out any issues instead of testing the tunnel
 			n.trafficTimer.Add(hostinfo.localIndexId, n.checkInterval)
 			return
